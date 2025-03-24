@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/payments")
+@RequestMapping("/payments")
 public class PaymentController {
 
     private final PaymentRepository paymentRepository;
@@ -36,11 +36,14 @@ public class PaymentController {
         put("Premium", 500);
     }};
 
-    @PostMapping("/create")
-    public ResponseEntity<Map<String, String>> createPayment(@RequestBody Map<String, Object> request) {
+    @PostMapping("/{invention_id}")
+    public ResponseEntity<Map<String, String>> createPayment(
+            @PathVariable("invention_id") String inventionId,
+            @RequestBody Map<String, Object> request) {
+
         Stripe.apiKey = stripeSecretKey;
 
-        String inventionId = (String) request.get("Invention_ID");
+//        String inventionId = (String) request.get("Invention_ID");
         String packageName = (String) request.get("Payment_Package");
         String inventorEmail = (String) request.get("Inventor_Email");
 
@@ -54,8 +57,8 @@ public class PaymentController {
             // Create Stripe Checkout session
             SessionCreateParams params = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.PAYMENT)
-                    .setSuccessUrl("http://localhost:5003/api/payments/success?session_id={CHECKOUT_SESSION_ID}")
-                    .setCancelUrl("http://localhost:5003/api/payments/cancel")
+                    .setSuccessUrl("http://localhost:5003/payments/success?session_id={CHECKOUT_SESSION_ID}")
+                    .setCancelUrl("http://localhost:5003/payments/cancel")
                     .addLineItem(
                             SessionCreateParams.LineItem.builder()
                                     .setQuantity(1L)
@@ -125,8 +128,12 @@ public class PaymentController {
 
     //Handle canceled payment redirection
     @GetMapping("/cancel")
-    public ResponseEntity<Map<String, String>> handlePaymentCancel(@RequestParam("session_id") String sessionId) throws StripeException {
+    public ResponseEntity<Map<String, String>> handlePaymentCancel(@RequestParam(value = "session_id", required = false) String sessionId) {
         try {
+            if (sessionId == null || sessionId.isEmpty()) {
+                return ResponseEntity.ok(Map.of("message", "Payment was cancelled!", "status", "CANCELLED_NO_SESSION"));
+            }
+
             Stripe.apiKey = stripeSecretKey;
             Session session = Session.retrieve(sessionId);
 
