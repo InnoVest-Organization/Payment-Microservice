@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/payments")
+@RequestMapping("/api/payments")
 public class PaymentController {
 
     private final PaymentRepository paymentRepository;
@@ -57,8 +57,8 @@ public class PaymentController {
             // Create Stripe Checkout session
             SessionCreateParams params = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.PAYMENT)
-                    .setSuccessUrl("http://localhost:5003/payments/success?session_id={CHECKOUT_SESSION_ID}")
-                    .setCancelUrl("http://localhost:5003/payments/cancel")
+                    .setSuccessUrl("http://localhost:5003/api/payments/success?session_id={CHECKOUT_SESSION_ID}")
+                    .setCancelUrl("http://localhost:5003/api/payments/cancel")
                     .addLineItem(
                             SessionCreateParams.LineItem.builder()
                                     .setQuantity(1L)
