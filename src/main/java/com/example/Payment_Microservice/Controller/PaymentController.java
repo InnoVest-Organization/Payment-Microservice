@@ -32,8 +32,8 @@ public class PaymentController {
     }
 
     private static final Map<String, Integer> PACKAGE_PRICES = new HashMap<>() {{
-        put("Basic", 100);
-        put("Standard", 250);
+        put("Standard", 100);
+        put("Enterprise", 250);
         put("Premium", 500);
     }};
 
