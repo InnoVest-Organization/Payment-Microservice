@@ -2,6 +2,7 @@ package com.example.Payment_Microservice.Service;
 
 import com.example.Payment_Microservice.Entity.Payment;
 import com.example.Payment_Microservice.Repository.PaymentRepository;
+import com.stripe.model.AccountSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,5 +39,9 @@ public class PaymentService {
                 " package has been " + status + ".\n\nThank you for using our service!";
 
         emailService.sendEmail(email, subject, body);
+    }
+
+    public Payment getPaymentDetailsBySessionId(String sessionId) {
+        return paymentRepository.findByPaymentIntentId(sessionId).orElse(null);
     }
 }

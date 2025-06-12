@@ -5,6 +5,7 @@ import com.example.Payment_Microservice.Entity.Payment;
 import com.example.Payment_Microservice.Repository.PaymentRepository;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
+import com.stripe.model.AccountSession;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +26,10 @@ public class PaymentController {
 
     @Value("${stripe.secret.key}")
     private String stripeSecretKey;
+
+    @Value("${frontend.base.url}")
+    private String frontendBaseUrl;
+
 
     public PaymentController(PaymentRepository paymentRepository, PaymentService paymentService) {
         this.paymentRepository = paymentRepository;
@@ -58,8 +63,10 @@ public class PaymentController {
             // Create Stripe Checkout session
             SessionCreateParams params = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.PAYMENT)
-                    .setSuccessUrl("http://localhost:5003/api/payments/success?session_id={CHECKOUT_SESSION_ID}")
-                    .setCancelUrl("http://localhost:5003/api/payments/cancel")
+//                    .setSuccessUrl("http://localhost:5003/api/payments/success?session_id={CHECKOUT_SESSION_ID}")
+//                    .setCancelUrl("http://localhost:5003/api/payments/cancel")
+                    .setSuccessUrl(frontendBaseUrl + "/payment-success?session_id={CHECKOUT_SESSION_ID}")
+                    .setCancelUrl(frontendBaseUrl + "/payment-failure?session_id={CHECKOUT_SESSION_ID}")
                     .addLineItem(
                             SessionCreateParams.LineItem.builder()
                                     .setQuantity(1L)
@@ -151,4 +158,19 @@ public class PaymentController {
             return ResponseEntity.badRequest().body(Map.of("error", "Cancellation failed: " + e.getMessage()));
         }
     }
+
+    @GetMapping("/details")
+    public ResponseEntity<?> getPaymentDetails(@RequestParam("session_id") String sessionId) {
+        try {
+            Payment payment = paymentService.getPaymentDetailsBySessionId(sessionId);
+            if (payment == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "No payment found for this session."));
+            }
+            return ResponseEntity.ok(payment);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
 }
+
